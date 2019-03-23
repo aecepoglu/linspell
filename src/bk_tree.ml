@@ -2,7 +2,7 @@ open Distance;;
 
 type bk_tree = Node of (int * char list * bk_tree list)
 
-let explode_chars str =
+let chars_of_string str =
   let len = String.length str in
   let rec aux i acc =
     if i < len then
@@ -12,6 +12,9 @@ let explode_chars str =
   in
     aux 0 []
 
+let string_of_chars chars =
+  List.map (String.make 1) chars
+  |> String.concat ""
 
 let add (word:string) (roots:bk_tree list) :(bk_tree list) =
   let rec add_to_trees chars d = function
@@ -28,27 +31,20 @@ let add (word:string) (roots:bk_tree list) :(bk_tree list) =
        let d = distance chars chars' in
          add_to_trees chars d subtrees
   in
-    add_to_root (explode_chars word) roots
+    add_to_root (chars_of_string word) roots
 
-let search tolerance word (roots:bk_tree list) :((int*string) list) =
-  let chars_0 = explode_chars word in
-  let rec aux d_parent queue = function
-    | Node(d, chars, subtrees) :: tl ->
+let search tolerance roots word =
+  let chars_0 = chars_of_string word in
+  let rec aux d_parent queue results = function
+    | Node(d, _, _) :: tl when (abs d - d_parent) <= tolerance ->
+       aux d_parent queue results tl
+    | Node(_, chars, subtrees) :: tl ->
        let d = distance chars_0 chars in
-         aux d ((d_parent, tl) :: queue) subtrees
+         aux d ((d_parent, tl) :: queue) ((chars, d) :: results) subtrees
     | [] -> (
         match queue with
-        | (d, subtrees) :: q_tl -> aux d q_tl subtrees
-        | [] -> []
+        | (d, subtrees) :: q_tl -> aux d q_tl results subtrees
+        | [] -> List.map (fun (chars, d) -> string_of_chars chars, d) results
       )
   in
-    aux 0 [] roots
-
-let mytree = []
-             |> add "ahmet"
-             |> add "mehmet"
-             |> add "ali"
-             |> add "veli"
-             |> add "melih"
-             |> add "mehmet"
-             |> add "metin"
+    aux 0 [] [] roots
