@@ -22,29 +22,62 @@ let create tolerance = {
   tbl = Hashtbl.create 50000;
 }
 
-let find_nearest_relatives ?(queue0=[]) word =
-  let rec aux has_deleted prefix queue results next_queue = function
-    | h :: t when not has_deleted -> (aux
-                                        false
-                                        (h :: prefix)
-                                        (queue @ [(prefix, t)])
-                                        results
-                                        next_queue
-                                        t
-                                     )
-    | l -> 
+type cursor = Start of char list
+            | Continue of (bool * char list * char list) list
+
+let find_nearest_relatives (cur:cursor) =
+  let rec aux has_deleted prefix results next_queue = function
+    | (h :: t, queue) when not has_deleted -> aux
+                                                false
+                                                (h :: prefix)
+                                                results
+                                                next_queue
+                                                (t, ((true, prefix, t) :: queue))
+    | l, queue -> 
        let results' = (if has_deleted
                        then ((List.rev prefix) @ l) :: results
                        else results
-                      )
-       in
+                      ) in
+       let next_queue' = (if has_deleted
+                          then (false, prefix, l) :: next_queue
+                          else next_queue
+                         ) in
          (match queue with
-          | (prefix', l') :: q_t -> aux true prefix' q_t results' next_queue l'
-          | [] -> results'
+          | (del', prefix', l') :: q_t -> aux del' prefix' results' next_queue' (l', q_t)
+          | [] -> results', Continue next_queue'
          )
   in
-    aux false [] queue0 [] [] (chars_of_string word)
+    aux false [] [] [] (match cur with
+        | Start chars -> chars, []
+        | Continue q -> [], q
+      )
 
-let () =
-  find_nearest_relatives "ali"
-  |> List.iter (fun chars -> print_endline (string_of_chars chars))
+let add db word =
+  let rec aux dist cursor =
+    if dist <= db.tolerance
+    then
+      let results, cursor' = find_nearest_relatives cursor in
+        List.iter (fun chars -> Hashtbl.add db.tbl (chars, dist) word) results;
+        aux (dist + 1) cursor'
+    else
+      db
+  in
+    aux 1 (Start (chars_of_string word))
+
+let search db word =
+  let rec aux dist reduced_words cursor =
+    if dist > 2
+    then []
+    else
+      reduced_words
+      |> List.map (fun chars -> Hashtbl.find_all db.tbl (chars, dist))
+      |> List.flatten
+      |> (function
+          | [] ->
+             let further_reduced_words, cursor' = find_nearest_relatives cursor in
+             aux (1 + dist) (reduced_words @ further_reduced_words) cursor'
+          | results -> (List.map (fun x -> x, dist)) results
+        )
+  in
+  let chars = chars_of_string word in
+    aux 0 [chars] (Start chars)

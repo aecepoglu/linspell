@@ -1,17 +1,13 @@
-open Bk_tree
+open Linspell
 
 let populate_db db0 filename =
-  Printf.printf "populate %s\n" filename;
   let in_ch = open_in filename in
+  let add_word = add db0 in
   let rec aux db =
-    Printf.printf "tick\n";
     try
       let word = input_line in_ch in
-      let () = Printf.printf "\"%s\"\n" word in
-      let db' = add word db in
-        aux db'
+        aux (add_word word)
     with End_of_file ->
-      Printf.printf "EOF\n";
       close_in in_ch;
       db
   in
@@ -21,9 +17,7 @@ let print_results results =
   List.iter (fun (str, d) -> Printf.printf "%s (%d)\n" str d) results;
   ()
 
-
 let () =
-  let word_db = populate_db [] "words.txt" in
-  let my_search = search 2 word_db in
-    print_results (my_search "boook");
-    print_results (my_search "dissapointed");
+  let mydb = populate_db (create 2) "words.txt" in
+  let my_search = search mydb in
+    print_results (my_search "cornafobia");
