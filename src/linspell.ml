@@ -27,8 +27,8 @@ type cursor = Start of char list
 
 let find_nearest_relatives (cur:cursor) =
   let rec aux has_deleted prefix results next_queue = function
-    | (h :: t, queue) when not has_deleted -> aux
-                                                false
+    | (h :: (h' :: _ as t), q) when h = h' -> aux false prefix results next_queue (t, q)
+    | (h :: t, queue) when not has_deleted -> aux false
                                                 (h :: prefix)
                                                 results
                                                 next_queue
@@ -65,6 +65,11 @@ let add db word =
     aux 1 (Start (chars_of_string word))
 
 let search db word =
+  let rec remove_repeats = function
+    | h :: (h' :: _ as t) when h = h' -> remove_repeats t
+    | h :: t -> h :: remove_repeats t
+    | [] -> []
+  in
   let rec aux dist reduced_words cursor =
     if dist > 2
     then []
@@ -76,7 +81,9 @@ let search db word =
           | [] ->
              let further_reduced_words, cursor' = find_nearest_relatives cursor in
              aux (1 + dist) (reduced_words @ further_reduced_words) cursor'
-          | results -> (List.map (fun x -> x, dist)) results
+          | results -> results
+                       |> remove_repeats
+                       |> List.map (fun x -> x, dist)
         )
   in
   let chars = chars_of_string word in

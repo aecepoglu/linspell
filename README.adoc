@@ -1,0 +1,7 @@
+= Symmetric deletion spell-checking library
+
+. To build & test
+------------
+dune build src/run.exe
+_build/default/src/run.exe
+------------

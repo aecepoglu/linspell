@@ -18,6 +18,12 @@ let print_results results =
   ()
 
 let () =
+  print_endline "Setting up the DB... Please wait.";
   let mydb = populate_db (create 2) "words.txt" in
-  let my_search = search mydb in
-    print_results (my_search "cornafobia");
+    while true do
+      print_string "\nEnter a word to spellcheck (Ctrl-D to quit): ";
+      read_line ()
+      |> String.trim
+      |> search mydb
+      |> print_results
+    done;

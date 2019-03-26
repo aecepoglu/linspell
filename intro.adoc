@@ -1,9 +1,0 @@
-= Prose Language Server
-
-A http://langserver.org[language server] for spoken languages.
-
-It features:
-
-- As-you-write feedback
-- Spellchecking
-- Weasel word warnings
