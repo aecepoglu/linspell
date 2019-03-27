@@ -1,4 +1,4 @@
-open Linspell
+open Lib
 
 let populate_db db0 filename =
   let in_ch = open_in filename in
