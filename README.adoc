@@ -1,7 +1,32 @@
 = Symmetric deletion spell-checking library
 
 . To build & test
-------------
+
+[source,sh]
+----
 dune build src/run.exe
 _build/default/src/run.exe
-------------
+----
+
+== The Algorithm
+
+The algorithm relies on a hash-table mapping generating reduced(edited) words to their original versions.
+
+.For example, the word "block"
+-----
+at distance 0: block
+at distance 1: bloc blok blck bock lock
+at distance 2: blc blk blo...
+-----
+
+Given any word to spell-check, we generate similarly reduced versions of it and search them in the hash-table.
+
+.Given a word "blocq"
+-----
+at distance 0: blocq
+at distance 1: bloc bloq blcq bocq locq
+at distance 2: blc blq blo...
+
+"bloc" maps to "block",
+	"block" can be the correct spelling of the word "blocq"
+-----

@@ -62,7 +62,9 @@ let add db word =
     else
       db
   in
-    aux 1 (Start (chars_of_string word))
+  let chars = chars_of_string word in
+    Hashtbl.add db.tbl (chars, 0) word;
+    aux 1 (Start chars)
 
 let search db word =
   let rec remove_repeats = function
