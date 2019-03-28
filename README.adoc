@@ -34,8 +34,9 @@ at distance 2: blc blq blo...
 === Performance
 
 Looking up the spelling of a word _with length W_) takes:
+
 - O(1), if it is correctly spelled
-- O(W), if it is at 1\~2 edit distance
-- O(2*W), if it is at 2\~4 edit distance
+- O(W), if it is at 1~2 edit distance
+- O(2*W), if it is at 2~4 edit distance
 
 On an i7 3.4GHz machine, spell-checking a text with 250 words (https://www.usingenglish.com/files/pdf/spelling.pdf) takes 0.01 seconds
